@@ -15,26 +15,30 @@ terraform {
 
 # create a resource group if it doesnt exist
 resource "azurerm_resource_group" "rg" {
-  name     = "myfirstresourcegroup"
-  location = "eastus"
+  name     = var.resource_group_name
+  location = var.location
 }
 
-resource "azurerm_container_registry" "acr" {
-  name                = "terraformdemoacr"
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = var.cluster_name
+  kubernetes_version  = var.kubernetes_version
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  sku                 = "Premium"
-  admin_enabled       = false
-  georeplications {
-    location                = "canadacentral"
-    zone_redundancy_enabled = true
-    tags                    = {}
+  dns_prefix          = var.cluster_name
+  node_resource_group = var.node_resource_group
+
+  default_node_pool {
+    name                = "system"
+    node_count          = var.system_node_count
+    vm_size             = "Standard_DS2_v2"
+    type                = "VirtualMachineScaleSets"
+    enable_auto_scaling = false
   }
-  georeplications {
-    location                = "Brazil South"
-    zone_redundancy_enabled = true
-    tags                    = {}
+  identity {
+    type = "SystemAssigned"
   }
+
 }
+
 
 
